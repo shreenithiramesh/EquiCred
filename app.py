@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import streamlit as st
 from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score, roc_curve
+from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score, roc_curve, confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -462,4 +462,17 @@ th{{color:{AMBER}}} .box{{background:#16161c;padding:14px;border-radius:10px;bor
     d1, d2 = st.columns(2)
     d1.download_button("⬇️ Download HTML report", report, "zyvantis_audit_report.html", "text/html", width="stretch")
     d2.download_button("⬇️ Download group metrics CSV", gm.to_csv().encode(), "group_metrics.csv", "text/csv", width="stretch")
+# ---- ERROR ANALYSIS -------------------------------------------------------
+with tabs[7]:
+    st.markdown("#### 🚨 How many errors did the AI make?")
+    tn, fp, fn, tp = confusion_matrix(yte, pred).ravel()
+    errors = fp + fn
+    c = st.columns(3)
+    kpi(c[0], "Total errors", f"{errors:,}", f"{errors/len(yte):.1%} of {len(yte):,} decisions")
+    kpi(c[1], "Good customers rejected (FP)", f"{fp:,}", "lost business")
+    kpi(c[2], "Defaulters approved (FN)", f"{fn:,}", "lost money")
 
+    cm = np.array([[tp, fp], [fn, tn]])
+    fig = px.imshow(cm, text_auto=True, x=["Actual: defaulted", "Actual: paid"],
+                    y=["AI: risky", "AI: safe"], color_continuous_scale="YlOrRd")
+    st.plotly_chart(style(fig, 340, "Confusion matrix"), width="stretch")
