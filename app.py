@@ -262,8 +262,9 @@ kpi(c[3], "ROC-AUC", f"{roc_auc_score(yte, proba):.3f}", model_name)
 kpi(c[4], "Fairness score", f"{score:.0f}/100", f"{sum(t['ok'] for t in tests)}/{len(tests)} tests passed")
 st.write("")
 
+
 tabs = st.tabs(["🏠 Overview", "🧪 Fairness Tests", "🔍 Group Explorer", "🛠️ Mitigation Lab",
-                "🔁 Counterfactual & Proxy", "🎯 What-If Simulator", "📄 Audit Report"])
+                "🔁 Counterfactual & Proxy", "🎯 What-If Simulator", "📄 Audit Report", "🚨 Error Analysis"])
 
 # ---- OVERVIEW -------------------------------------------------------------
 with tabs[0]:
