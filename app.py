@@ -53,31 +53,68 @@ st.caption(
 
 
 # ---------------- LOAD DATA ----------------
+
+# -------- LOAD EXCEL OR CSV DATA --------
+
 uploaded = st.sidebar.file_uploader(
-    "Upload credit dataset (CSV)", type=["csv"]
+    "Upload your dataset",
+    type=["xlsx", "xls", "csv"]
 )
 
-default_file = "credit_card_clients_cleaned.csv"
+# Optional local Excel file
+default_file = "credit_card_clients_cleaned.xlsx"
 
 try:
     if uploaded is not None:
-        df = pd.read_csv(uploaded)
-        data_source = "Uploaded CSV"
+        filename = uploaded.name.lower()
+
+        if filename.endswith(".csv"):
+            df = pd.read_csv(uploaded)
+            selected_sheet = "CSV file"
+        else:
+            excel_file = pd.ExcelFile(uploaded)
+            sheet_names = excel_file.sheet_names
+
+            selected_sheet = st.sidebar.selectbox(
+                "Select Excel sheet",
+                sheet_names
+            )
+
+            df = pd.read_excel(
+                excel_file,
+                sheet_name=selected_sheet
+            )
+
     elif os.path.exists(default_file):
-        df = pd.read_csv(default_file)
-        data_source = "Local project CSV"
+        excel_file = pd.ExcelFile(default_file)
+
+        selected_sheet = st.sidebar.selectbox(
+            "Select local Excel sheet",
+            excel_file.sheet_names
+        )
+
+        df = pd.read_excel(
+            excel_file,
+            sheet_name=selected_sheet
+        )
+
     else:
-        st.info("Upload a CSV file to start the audit.")
+        st.info(
+            "Upload your Excel file to start the audit."
+        )
         st.stop()
+
+    df.columns = df.columns.astype(str).str.strip()
+
+    st.sidebar.success("Dataset loaded successfully")
+    st.sidebar.write(f"Selected sheet: {selected_sheet}")
+    st.sidebar.write(f"Rows: {len(df):,}")
+    st.sidebar.write(f"Columns: {len(df.columns)}")
+
 except Exception as e:
-    st.error(f"Could not read the CSV: {e}")
+    st.error(f"Unable to load dataset: {e}")
     st.stop()
 
-df.columns = df.columns.str.strip()
-
-st.sidebar.success(f"Loaded: {data_source}")
-st.sidebar.write(f"Rows: {len(df):,}")
-st.sidebar.write(f"Columns: {len(df.columns)}")
 
 
 # ---------------- DATA QUALITY ----------------
